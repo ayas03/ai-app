@@ -3,6 +3,7 @@ import { z } from "zod";
 import { toast } from "sonner";
 import UploadFormInput from "./upload-form-input";
 import { useUploadThing } from "@/utils/uploadthing";
+import { generatePdfSummary } from "@/actions/upload-actions";
 
 const formSchema = z.object({
   file: z
@@ -51,8 +52,10 @@ export default function UploadForm() {
     });
 
     // file upload
-    const resp = await startUpload([file]);
-    if (!resp) {
+    const uploadRes = await startUpload([file]);
+    console.log("Upload response:", uploadRes);
+
+    if (!uploadRes?.[0]) {
       toast.error("Failed to upload file");
       return;
     }
@@ -60,11 +63,45 @@ export default function UploadForm() {
     toast.info("Processing your file...", {
       description: "This may take a few seconds.. Our AI is working on it",
     });
-    //parse pdf using langchain
 
-    // summarize the pdf using AI
-    // save the summary to the database
-    // redirect to the summary page
+    // Transform the upload response to match expected format
+    const formattedResponse = [
+      {
+        serverData: {
+          userId: uploadRes[0].serverData.userId,
+          file: {
+            url: uploadRes[0].url,
+            name: uploadRes[0].name,
+          },
+        },
+      },
+    ] as [
+      { serverData: { userId: string; file: { url: string; name: string } } }
+    ];
+
+    try {
+      console.log("Formatted response:", formattedResponse);
+      const summary = await generatePdfSummary(formattedResponse);
+      console.log("PDF Summary result:", summary);
+
+      if (summary.success) {
+        toast.success("Summary generated successfully!");
+      } else {
+        toast.error(summary.message || "Failed to generate summary");
+      }
+    } catch (error: any) {
+      console.error("Error processing PDF:", error);
+      if (
+        error.message?.includes("insufficient_quota") ||
+        error.message?.includes("exceeded your current quota")
+      ) {
+        toast.error(
+          "OpenAI API quota exceeded. Please try again later or contact support."
+        );
+      } else {
+        toast.error("Failed to process PDF. Please try again later.");
+      }
+    }
   };
   return (
     <div className="flex flex-col gap-8 w-full max-w-2xl mx-auto">
