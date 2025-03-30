@@ -55,14 +55,12 @@ const PricingCard = ({
           </div>
         </div>
 
-        <div className="flex gap-2">
-          <p className="text-5xl tracking-tight font-extrabold">
-            ${price}
-            <div className="flex flex-col justify-end mb-[4px]">
-              <p className="text-xs uppercase font-semibold">USD</p>
-              <p className="text-xs">month</p>
-            </div>
-          </p>
+        <div className="flex gap-2 items-end">
+          <p className="text-5xl tracking-tight font-extrabold">${price}</p>
+          <div className="flex flex-col mb-2">
+            <p className="text-xs uppercase font-semibold">USD</p>
+            <p className="text-xs">month</p>
+          </div>
         </div>
         <div className="space-y-2.5 leading-relaxed text-base flex-1">
           {items.map((item, idx) => (
