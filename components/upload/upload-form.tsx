@@ -79,29 +79,12 @@ export default function UploadForm() {
       { serverData: { userId: string; file: { url: string; name: string } } }
     ];
 
-    try {
-      console.log("Formatted response:", formattedResponse);
-      const summary = await generatePdfSummary(formattedResponse);
-      console.log("PDF Summary result:", summary);
-
-      if (summary.success) {
-        toast.success("Summary generated successfully!");
-      } else {
-        toast.error(summary.message || "Failed to generate summary");
-      }
-    } catch (error: any) {
-      console.error("Error processing PDF:", error);
-      if (
-        error.message?.includes("insufficient_quota") ||
-        error.message?.includes("exceeded your current quota")
-      ) {
-        toast.error(
-          "OpenAI API quota exceeded. Please try again later or contact support."
-        );
-      } else {
-        toast.error("Failed to process PDF. Please try again later.");
-      }
-    }
+    console.log("Formatted response:", formattedResponse);
+    const summary = await generatePdfSummary(formattedResponse);
+    console.log("PDF Summary result:", summary);
+    // summarize the pdf using AI
+    // save the summary to the database
+    // redirect to the summary page
   };
   return (
     <div className="flex flex-col gap-8 w-full max-w-2xl mx-auto">

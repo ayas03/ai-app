@@ -1,4 +1,5 @@
 "use server";
+import { generateSummaryFromGemini } from "@/lib/geminiai";
 import { fetchAndExtractPdfText } from "@/lib/langchain";
 import { generateSummaryFromOpenAI } from "@/lib/openai";
 
@@ -15,10 +16,7 @@ export async function generatePdfSummary(
     }
   ]
 ) {
-  console.log("Starting PDF processing with response:", uploadResponse);
-
   if (!uploadResponse) {
-    console.log("No upload response received");
     return {
       success: false,
       message: "File upload failed",
@@ -33,10 +31,7 @@ export async function generatePdfSummary(
     },
   } = uploadResponse[0];
 
-  console.log("Processing PDF:", { pdfUrl, fileName });
-
   if (!pdfUrl) {
-    console.log("No PDF URL found in response");
     return {
       success: false,
       message: "File upload failed",
@@ -45,16 +40,14 @@ export async function generatePdfSummary(
   }
 
   try {
-    console.log("Fetching PDF text...");
     const pdfText = await fetchAndExtractPdfText(pdfUrl);
     console.log("PDF Text length:", pdfText.length);
     console.log("First 500 chars of PDF:", pdfText.substring(0, 500));
 
     let summary;
     try {
-      console.log("Generating summary with OpenAI...");
-      summary = await generateSummaryFromOpenAI(pdfText);
-      console.log("Summary generated:", summary);
+      summary = await generateSummaryFromGemini(pdfText);
+      console.log("Generated summary:", summary);
     } catch (err) {
       console.error("Error generating summary:", err);
       return {
@@ -65,7 +58,6 @@ export async function generatePdfSummary(
     }
 
     if (!summary) {
-      console.log("No summary generated");
       return {
         success: false,
         message: "Failed to generate summary",
@@ -76,13 +68,13 @@ export async function generatePdfSummary(
     return {
       success: true,
       message: "Summary generated successfully",
-      data: summary,
+      data: { summary },
     };
   } catch (err) {
     console.error("Error processing PDF:", err);
     return {
       success: false,
-      message: "Failed to process PDF",
+      message: "File upload failed.",
       data: null,
     };
   }
